@@ -10,6 +10,6 @@ use Services\InicioService;
 $controlador = new PreguntasController();
 new InicioService();
 
-$controlador->obtenerXPreguntasAleatoriasPorCategorias();
+$controlador->obtenerXPreguntasAleatoriasPorCategoria(1);
 
 RespuestaHelper::enviarRespuesta(404);
