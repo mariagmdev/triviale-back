@@ -8,6 +8,8 @@ class InicioService
     {
         $this->configurarCabecera();
         $this->configurarConexionBD();
+        $sesion = new SesionService();
+        $sesion->iniciarSesion();
     }
 
     function configurarConexionBD(): void

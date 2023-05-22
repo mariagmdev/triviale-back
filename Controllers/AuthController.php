@@ -9,6 +9,7 @@ use Models\Usuario\UsuarioInicio;
 use Models\Usuario\UsuarioInicioRes;
 use Models\Usuario\UsuarioRegistro;
 use Services\BaseDatosService;
+use Services\SesionService;
 
 class AuthController
 {
@@ -40,6 +41,8 @@ class AuthController
         $consulta = "SELECT id, nombre, idRol FROM usuarios WHERE nombre='$usuario->nombre' and clave='$usuario->clave'";
         $resultado = $bd->consultar($consulta);
         if (!empty($resultado)) {
+            $sesion = new SesionService();
+            $sesion->setId($resultado[0]['id']);
             RespuestaHelper::enviarRespuesta(200, new UsuarioInicioRes($resultado[0]));
         } else {
             $error = new Error('Usuario o contraseña incorrectos.');
