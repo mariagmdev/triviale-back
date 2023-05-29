@@ -5,6 +5,7 @@ namespace Controllers;
 use Helpers\RespuestaHelper;
 use Models\Error\Error;
 use Models\Pregunta\Pregunta;
+use Models\Pregunta\PreguntaCreacion;
 use Models\Respuesta\Respuesta;
 use Services\BaseDatosService;
 
@@ -44,5 +45,27 @@ class PreguntasController
             RespuestaHelper::enviarRespuesta(400, new Error("La pregunta o la respuesta no existen."));
         }
         RespuestaHelper::enviarRespuesta(200, (int)$resultado[0]['esCorrecta'] === 1);
+    }
+
+    function crear(PreguntaCreacion $pregunta): void
+    {
+        $bd = new BaseDatosService();
+        if ($pregunta->idCategoria === 0) {
+            $sentenciaCategoria = "INSERT into categorias (nombre) VALUES ('$pregunta->categoria')";
+            $bd->ejecutar($sentenciaCategoria);
+            $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
+        }
+        $sentenciaPregunta = "INSERT into preguntas (titulo, idCategoria) VALUES ('$pregunta->titulo',$pregunta->idCategoria)";
+        $bd->ejecutar($sentenciaPregunta);
+        $idPregunta = (int) $bd->obtenerUltimoId();
+        $sentenciaRespuestas = "INSERT into respuestas (titulo, idPregunta, esCorrecta) VALUES ";
+        $valoresRespuesta = [];
+        foreach ($pregunta->respuestas as $respuesta) {
+            array_push($valoresRespuesta, "('$respuesta->titulo', $idPregunta," . ((int) $respuesta->esCorrecta) . ")");
+        }
+        $sentenciaRespuestas .= implode(",", $valoresRespuesta);
+        $bd->ejecutar($sentenciaRespuestas);
+
+        RespuestaHelper::enviarRespuesta(204);
     }
 }

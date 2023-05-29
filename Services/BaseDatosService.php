@@ -30,4 +30,9 @@ class BaseDatosService
         $haIdoBien = $this->con->query($sentencia);
         return $haIdoBien ? true : false;
     }
+
+    public function obtenerUltimoId(): int | string
+    {
+        return $this->con->insert_id;
+    }
 }
