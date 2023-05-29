@@ -15,6 +15,7 @@ new InicioService();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idPregunta']) && isset($body['idRespuesta']) && isset($body['validar'])) {
     $controlador->validar($body['idPregunta'], $body['idRespuesta']);
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
     $respuestas = [];
     foreach ($body['respuestas'] as $respuesta) {
@@ -30,4 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
     $controlador->crear($pregunta);
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controlador->listar();
+}
 RespuestaHelper::enviarRespuesta(404);

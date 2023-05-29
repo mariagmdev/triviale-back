@@ -42,7 +42,8 @@ class AuthController
         $resultado = $bd->consultar($consulta);
         if (!empty($resultado)) {
             $sesion = new SesionService();
-            $sesion->setId($resultado[0]['id']);
+            $sesion->setId((int) $resultado[0]['id']);
+            $sesion->setIdRol((int) $resultado[0]['idRol']);
             RespuestaHelper::enviarRespuesta(200, new UsuarioInicioRes($resultado[0]));
         } else {
             $error = new Error('Usuario o contraseña incorrectos.');

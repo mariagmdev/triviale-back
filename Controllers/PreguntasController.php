@@ -2,12 +2,15 @@
 
 namespace Controllers;
 
+use Enums\Rol;
 use Helpers\RespuestaHelper;
 use Models\Error\Error;
 use Models\Pregunta\Pregunta;
 use Models\Pregunta\PreguntaCreacion;
+use Models\Pregunta\PreguntaRevision;
 use Models\Respuesta\Respuesta;
 use Services\BaseDatosService;
+use Services\SesionService;
 
 class PreguntasController
 {
@@ -67,5 +70,22 @@ class PreguntasController
         $bd->ejecutar($sentenciaRespuestas);
 
         RespuestaHelper::enviarRespuesta(204);
+    }
+
+    function listar(): void
+    {
+        $sesion = new SesionService();
+        if (Rol::Administrador->value === $sesion->getIdRol()) {
+            $bd = new BaseDatosService();
+            $consulta = "SELECT p.id, p.titulo, p.esPublica, c.id idCategoria, c.nombre nombreCategoria FROM preguntas p JOIN categorias c ON p.idCategoria=c.id";
+            $resultado = $bd->consultar($consulta);
+            $preguntas = [];
+            foreach ($resultado as $pregunta) {
+                array_push($preguntas, new PreguntaRevision($pregunta));
+            }
+            RespuestaHelper::enviarRespuesta(200, $preguntas);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
+        }
     }
 }
