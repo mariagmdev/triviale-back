@@ -2,7 +2,7 @@
 
 namespace Models\Pregunta;
 
-class PreguntaRevision
+class PreguntaGeneral
 {
     public int $id;
     public string $titulo;

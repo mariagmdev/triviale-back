@@ -7,8 +7,10 @@ use Helpers\RespuestaHelper;
 use Models\Error\Error;
 use Models\Pregunta\Pregunta;
 use Models\Pregunta\PreguntaCreacion;
-use Models\Pregunta\PreguntaRevision;
+use Models\Pregunta\PreguntaEdicion;
+use Models\Pregunta\PreguntaGeneral;
 use Models\Respuesta\Respuesta;
+use Models\Respuesta\RespuestaEdicion;
 use Services\BaseDatosService;
 use Services\SesionService;
 
@@ -81,9 +83,73 @@ class PreguntasController
             $resultado = $bd->consultar($consulta);
             $preguntas = [];
             foreach ($resultado as $pregunta) {
-                array_push($preguntas, new PreguntaRevision($pregunta));
+                array_push($preguntas, new PreguntaGeneral($pregunta));
             }
             RespuestaHelper::enviarRespuesta(200, $preguntas);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
+        }
+    }
+
+    function obtener(int $id): void
+    {
+        $sesion = new SesionService();
+        if (Rol::Administrador->value === $sesion->getIdRol()) {
+            $bd = new BaseDatosService();
+            $consultaPregunta = "SELECT p.id, p.titulo, p.esPublica, c.id idCategoria, c.nombre nombreCategoria FROM preguntas p JOIN categorias c ON p.idCategoria=c.id WHERE p.id=$id";
+            $resultadoPregunta = $bd->consultar($consultaPregunta);
+            $consultaRespuestas = "SELECT * FROM respuestas WHERE idPregunta=$id";
+            $resultadoRespuestas = $bd->consultar($consultaRespuestas);
+            $respuestas = [];
+            foreach ($resultadoRespuestas as $respuesta) {
+                array_push($respuestas, new RespuestaEdicion($respuesta));
+            }
+            $pregunta = new PreguntaEdicion(array_merge($resultadoPregunta[0], ['respuestas' => $respuestas]));
+            RespuestaHelper::enviarRespuesta(200, $pregunta);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
+        }
+    }
+
+    function modificar(int $id, PreguntaEdicion $pregunta): void
+    {
+        $sesion = new SesionService();
+        if (Rol::Administrador->value === $sesion->getIdRol()) {
+            if ($id === $pregunta->id) {
+                $bd = new BaseDatosService();
+                if ($pregunta->idCategoria === 0) {
+                    $sentenciaCategoria = "INSERT into categorias (nombre) VALUES ('$pregunta->nombreCategoria')";
+                    $bd->ejecutar($sentenciaCategoria);
+                    $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
+                }
+                $sentenciaPregunta = "UPDATE preguntas SET 
+                    titulo='$pregunta->titulo',
+                    esPublica=" . ($pregunta->esPublica ? 1 : 0) . ",
+                    idCategoria=$pregunta->idCategoria
+                    WHERE id=$id";
+                $bd->ejecutar($sentenciaPregunta);
+                foreach ($pregunta->respuestas as $respuesta) {
+                    $sentenciaRespuesta = "UPDATE respuestas SET titulo='$respuesta->titulo', esCorrecta=" . ($respuesta->esCorrecta ? 1 : 0) . " WHERE id=$respuesta->id";
+                    $bd->ejecutar($sentenciaRespuesta);
+                }
+
+                RespuestaHelper::enviarRespuesta(204);
+            } else {
+                RespuestaHelper::enviarRespuesta(400, ['error' => 'Los id no coinciden.']);
+            }
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
+        }
+    }
+
+    function establecerVisibilidad(bool $esPublica, int $id): void
+    {
+        $sesion = new SesionService();
+        if (Rol::Administrador->value === $sesion->getIdRol()) {
+            $bd = new BaseDatosService();
+            $sentencia = "UPDATE preguntas SET esPublica=" . ($esPublica ? 1 : 0) . " WHERE id=$id";
+            $bd->ejecutar($sentencia);
+            RespuestaHelper::enviarRespuesta(204);
         } else {
             RespuestaHelper::enviarRespuesta(401);
         }
