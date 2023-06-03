@@ -9,7 +9,7 @@ use Services\SesionService;
 class PuntuacionesController
 {
 
-    function crear(array $preguntas): void
+    function crear(array $preguntas, int $tiempo): void
     {
         $sesion = new SesionService();
         if ($sesion->haySesion()) {
@@ -36,7 +36,7 @@ class PuntuacionesController
                     $puntos += 10;
                 }
             }
-            $sentence = "INSERT into puntuaciones (idUsuario,puntos) values({$sesion->getId()},$puntos)";
+            $sentence = "INSERT into puntuaciones (idUsuario,puntos,tiempo) values({$sesion->getId()},$puntos, $tiempo)";
             $bd->ejecutar($sentence);
             RespuestaHelper::enviarRespuesta(200, $puntos);
         } else {
@@ -47,7 +47,11 @@ class PuntuacionesController
     function obtenerRanking(): void
     {
         $bd = new BaseDatosService();
-        $query = "SELECT MAX(p.puntos) puntos, u.nombre FROM puntuaciones p JOIN usuarios u ON p.idUsuario=u.id GROUP BY p.idUsuario ORDER BY puntos DESC LIMIT 10";
+        $query = "SELECT p.puntos, p.tiempo, u.nombre FROM puntuaciones p JOIN usuarios u ON p.idUsuario=u.id 
+            WHERE (p.idUsuario,p.puntos) 
+            IN (SELECT pp.idUsuario, MAX(pp.puntos) puntos FROM puntuaciones pp GROUP BY pp.idUsuario ORDER BY puntos DESC)
+            GROUP BY p.idUsuario, p.puntos
+            ORDER BY p.puntos DESC LIMIT 10;";
         $resultado = $bd->consultar($query);
         $usuarioPuntuaciones = [];
         foreach ($resultado as $usuarioPuntuacion) {

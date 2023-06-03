@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['preguntas']) && isset(
         array_push($preguntas, new PreguntaRespondida($pregunta));
     }
 
-    $controlador->crear($preguntas);
+    $controlador->crear($preguntas, (int)$body['tiempo']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $_GET['ranking']) {
