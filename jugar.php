@@ -8,8 +8,10 @@ use Helpers\RespuestaHelper;
 use Services\InicioService;
 
 $controlador = new PreguntasController();
+$body = PeticionHelper::getBody();
 new InicioService();
-
-$controlador->obtenerXPreguntasAleatoriasPorCategoria(1);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias'])) {
+    $controlador->obtenerXPreguntasAleatoriasPorCategoria($body['idCategorias']);
+}
 
 RespuestaHelper::enviarRespuesta(404);

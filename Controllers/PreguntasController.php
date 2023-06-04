@@ -17,12 +17,12 @@ use Services\SesionService;
 class PreguntasController
 {
 
-    function obtenerXPreguntasAleatoriasPorCategoria(int $idCategoria, int $cantidad = 10)
+    function obtenerXPreguntasAleatoriasPorCategoria(array $idCategorias, int $cantidad = 15)
     {
         $bd = new BaseDatosService();
-        $consultaPreguntas = "SELECT p.id, p.titulo FROM preguntas p WHERE idCategoria=$idCategoria AND p.esPublica=1";
+        $consultaPreguntas = "SELECT p.id, p.titulo FROM preguntas p WHERE idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
         $resultadoPreguntas = $bd->consultar($consultaPreguntas);
-        $consultaRespuestas = "SELECT r.id, r.titulo, r.idPregunta FROM respuestas r JOIN preguntas p ON p.id=r.idPregunta WHERE p.idCategoria=$idCategoria AND p.esPublica=1";
+        $consultaRespuestas = "SELECT r.id, r.titulo, r.idPregunta FROM respuestas r JOIN preguntas p ON p.id=r.idPregunta WHERE p.idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
         $resultadoRespuestas = $bd->consultar($consultaRespuestas);
         shuffle($resultadoPreguntas);
         $resultadoPreguntas = array_slice($resultadoPreguntas, 0, $cantidad);
