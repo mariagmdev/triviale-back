@@ -11,7 +11,11 @@ $controlador = new CategoriasController();
 new InicioService();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $controlador->listar();
+    if (isset($_GET['partida'])) {
+        $controlador->listarCategoriasPartida();
+    } else {
+        $controlador->listar();
+    }
 }
 
 RespuestaHelper::enviarRespuesta(404);
