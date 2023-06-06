@@ -30,7 +30,13 @@ class AuthController
             $usuario->clave = md5($usuario->clave);
             $sentencia = "INSERT INTO usuarios (nombre, clave, idRol) VALUES ('$usuario->nombre', '$usuario->clave', " . Rol::Usuario->value . ")";
             $bd->ejecutar($sentencia);
-            RespuestaHelper::enviarRespuesta(204);
+
+            $usuarioInicioSesion = new UsuarioInicioRes(['id' => $bd->obtenerUltimoId(), 'nombre' => $usuario->nombre, 'idRol' => Rol::Usuario->value]);
+
+            $sesion = new SesionService();
+            $sesion->setId((int) $usuarioInicioSesion->id);
+            $sesion->setIdRol((int) $usuarioInicioSesion->idRol);
+            RespuestaHelper::enviarRespuesta(200, $usuarioInicioSesion);
         }
     }
 
