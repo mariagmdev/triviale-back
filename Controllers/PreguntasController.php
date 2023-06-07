@@ -123,13 +123,13 @@ class PreguntasController
                     $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
                 }
                 $sentenciaPregunta = "UPDATE preguntas SET 
-                    titulo='$pregunta->titulo',
+                    titulo='" . addslashes($pregunta->titulo) . "',
                     esPublica=" . ($pregunta->esPublica ? 1 : 0) . ",
                     idCategoria=$pregunta->idCategoria
                     WHERE id=$id";
                 $bd->ejecutar($sentenciaPregunta);
                 foreach ($pregunta->respuestas as $respuesta) {
-                    $sentenciaRespuesta = "UPDATE respuestas SET titulo='$respuesta->titulo', esCorrecta=" . ($respuesta->esCorrecta ? 1 : 0) . " WHERE id=$respuesta->id";
+                    $sentenciaRespuesta = "UPDATE respuestas SET titulo='" . addslashes($respuesta->titulo) . "', esCorrecta=" . ($respuesta->esCorrecta ? 1 : 0) . " WHERE id=$respuesta->id";
                     $bd->ejecutar($sentenciaRespuesta);
                 }
 

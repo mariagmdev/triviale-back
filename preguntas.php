@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $_GET['id'] && isset($body['modifica
         'titulo' => $body['titulo'],
         'idCategoria' => $body['idCategoria'],
         'nombreCategoria' => $body['nombreCategoria'],
+        'esPublica' => $body['esPublica'],
         'respuestas' => $respuestas,
     ]);
     $controlador->modificar($_GET['id'], $pregunta);
