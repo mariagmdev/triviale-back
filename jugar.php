@@ -1,7 +1,6 @@
 <?php
 spl_autoload_register();
 
-use Controllers\AuthController;
 use Controllers\PreguntasController;
 use Helpers\PeticionHelper;
 use Helpers\RespuestaHelper;
@@ -11,7 +10,7 @@ $controlador = new PreguntasController();
 $body = PeticionHelper::getBody();
 new InicioService();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias'])) {
-    $controlador->obtenerXPreguntasAleatoriasPorCategoria($body['idCategorias']);
+    $controlador->obtenerXPreguntasAleatoriasPorCategorias($body['idCategorias']);
 }
 
 RespuestaHelper::enviarRespuesta(404);

@@ -17,61 +17,74 @@ use Services\SesionService;
 class PreguntasController
 {
 
-    function obtenerXPreguntasAleatoriasPorCategoria(array $idCategorias, int $cantidad = 15)
+    function obtenerXPreguntasAleatoriasPorCategorias(array $idCategorias, int $cantidad = 15)
     {
-        $bd = new BaseDatosService();
-        $consultaPreguntas = "SELECT p.id, p.titulo FROM preguntas p WHERE idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
-        $resultadoPreguntas = $bd->consultar($consultaPreguntas);
-        $consultaRespuestas = "SELECT r.id, r.titulo, r.idPregunta FROM respuestas r JOIN preguntas p ON p.id=r.idPregunta WHERE p.idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
-        $resultadoRespuestas = $bd->consultar($consultaRespuestas);
-        shuffle($resultadoPreguntas);
-        $resultadoPreguntas = array_slice($resultadoPreguntas, 0, $cantidad);
-        $preguntas = [];
-        foreach ($resultadoPreguntas as $pregunta) {
-            $respuestas = [];
-            foreach ($resultadoRespuestas as $respuesta) {
-                if ($respuesta['idPregunta'] === $pregunta['id']) {
-                    array_push($respuestas, new Respuesta($respuesta));
-                }
-            };
-            shuffle($respuestas);
-            array_push($preguntas, new Pregunta(array_merge($pregunta, ['respuestas' => $respuestas])));
+        $sesion = new SesionService();
+        if ($sesion->haySesion()) {
+            $bd = new BaseDatosService();
+            $consultaPreguntas = "SELECT p.id, p.titulo, c.nombre nombreCategoria, c.img imgCategoria FROM preguntas p LEFT JOIN categorias c ON c.id=p.idCategoria WHERE c.id in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
+            $resultadoPreguntas = $bd->consultar($consultaPreguntas);
+            $consultaRespuestas = "SELECT r.id, r.titulo, r.idPregunta FROM respuestas r JOIN preguntas p ON p.id=r.idPregunta WHERE p.idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
+            $resultadoRespuestas = $bd->consultar($consultaRespuestas);
+            shuffle($resultadoPreguntas);
+            $resultadoPreguntas = array_slice($resultadoPreguntas, 0, $cantidad);
+            $preguntas = [];
+            foreach ($resultadoPreguntas as $pregunta) {
+                $respuestas = [];
+                foreach ($resultadoRespuestas as $respuesta) {
+                    if ($respuesta['idPregunta'] === $pregunta['id']) {
+                        array_push($respuestas, new Respuesta($respuesta));
+                    }
+                };
+                shuffle($respuestas);
+                array_push($preguntas, new Pregunta(array_merge($pregunta, ['respuestas' => $respuestas])));
+            }
+            RespuestaHelper::enviarRespuesta(200, $preguntas);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
         }
-
-        RespuestaHelper::enviarRespuesta(200, $preguntas);
     }
 
     function validar(int $idPregunta, int $idRespuesta): void
     {
-        $bd = new BaseDatosService();
-        $consulta = "SELECT r.esCorrecta FROM respuestas r WHERE r.id=$idRespuesta AND r.idPregunta=$idPregunta";
-        $resultado = $bd->consultar($consulta);
-        if (empty($resultado)) {
-            RespuestaHelper::enviarRespuesta(400, new Error("La pregunta o la respuesta no existen."));
+        $sesion = new SesionService();
+        if ($sesion->haySesion()) {
+            $bd = new BaseDatosService();
+            $consulta = "SELECT r.esCorrecta FROM respuestas r WHERE r.id=$idRespuesta AND r.idPregunta=$idPregunta";
+            $resultado = $bd->consultar($consulta);
+            if (empty($resultado)) {
+                RespuestaHelper::enviarRespuesta(400, new Error("La pregunta o la respuesta no existen."));
+            }
+            RespuestaHelper::enviarRespuesta(200, (int)$resultado[0]['esCorrecta'] === 1);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
         }
-        RespuestaHelper::enviarRespuesta(200, (int)$resultado[0]['esCorrecta'] === 1);
     }
 
     function crear(PreguntaCreacion $pregunta): void
     {
-        $bd = new BaseDatosService();
-        if ($pregunta->idCategoria === 0) {
-            $sentenciaCategoria = "INSERT into categorias (nombre) VALUES ('$pregunta->categoria')";
-            $bd->ejecutar($sentenciaCategoria);
-            $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
+        $sesion = new SesionService();
+        if ($sesion->haySesion()) {
+            $bd = new BaseDatosService();
+            if ($pregunta->idCategoria === 0) {
+                $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->categoria'," . (isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL") . ")";
+                $bd->ejecutar($sentenciaCategoria);
+                $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
+            }
+            $sentenciaPregunta = "INSERT into preguntas (titulo, idCategoria) VALUES ('$pregunta->titulo',$pregunta->idCategoria)";
+            $bd->ejecutar($sentenciaPregunta);
+            $idPregunta = (int) $bd->obtenerUltimoId();
+            $sentenciaRespuestas = "INSERT into respuestas (titulo, idPregunta, esCorrecta) VALUES ";
+            $valoresRespuesta = [];
+            foreach ($pregunta->respuestas as $respuesta) {
+                array_push($valoresRespuesta, "('$respuesta->titulo', $idPregunta," . ((int) $respuesta->esCorrecta) . ")");
+            }
+            $sentenciaRespuestas .= implode(",", $valoresRespuesta);
+            $bd->ejecutar($sentenciaRespuestas);
+            RespuestaHelper::enviarRespuesta(204);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
         }
-        $sentenciaPregunta = "INSERT into preguntas (titulo, idCategoria) VALUES ('$pregunta->titulo',$pregunta->idCategoria)";
-        $bd->ejecutar($sentenciaPregunta);
-        $idPregunta = (int) $bd->obtenerUltimoId();
-        $sentenciaRespuestas = "INSERT into respuestas (titulo, idPregunta, esCorrecta) VALUES ";
-        $valoresRespuesta = [];
-        foreach ($pregunta->respuestas as $respuesta) {
-            array_push($valoresRespuesta, "('$respuesta->titulo', $idPregunta," . ((int) $respuesta->esCorrecta) . ")");
-        }
-        $sentenciaRespuestas .= implode(",", $valoresRespuesta);
-        $bd->ejecutar($sentenciaRespuestas);
-
-        RespuestaHelper::enviarRespuesta(204);
     }
 
     function listar(): void
@@ -96,7 +109,7 @@ class PreguntasController
         $sesion = new SesionService();
         if (Rol::Administrador->value === $sesion->getIdRol()) {
             $bd = new BaseDatosService();
-            $consultaPregunta = "SELECT p.id, p.titulo, p.esPublica, c.id idCategoria, c.nombre nombreCategoria FROM preguntas p JOIN categorias c ON p.idCategoria=c.id WHERE p.id=$id";
+            $consultaPregunta = "SELECT p.id, p.titulo, p.esPublica, c.id idCategoria, c.img imgCategoria, c.nombre nombreCategoria FROM preguntas p JOIN categorias c ON p.idCategoria=c.id WHERE p.id=$id";
             $resultadoPregunta = $bd->consultar($consultaPregunta);
             $consultaRespuestas = "SELECT * FROM respuestas WHERE idPregunta=$id";
             $resultadoRespuestas = $bd->consultar($consultaRespuestas);
@@ -118,7 +131,7 @@ class PreguntasController
             if ($id === $pregunta->id) {
                 $bd = new BaseDatosService();
                 if ($pregunta->idCategoria === 0) {
-                    $sentenciaCategoria = "INSERT into categorias (nombre) VALUES ('$pregunta->nombreCategoria')";
+                    $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->nombreCategoria'," . (isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL") . ")";
                     $bd->ejecutar($sentenciaCategoria);
                     $pregunta->idCategoria = (int) $bd->obtenerUltimoId();
                 }

@@ -16,9 +16,6 @@ class AuthController
 
     function registrar(UsuarioRegistro $usuario)
     {
-        // TODO:david Debería añadir más validación al back para todos los campos o al hacerlo en front puedo ignorarlo. 
-        // Sería buena idea poner el email aunque de momento no me servirá para nada.
-        //Validación de datos
         if ($usuario->clave !== $usuario->clave2) {
             $error = new Error('Las contraseñas no coinciden.');
             RespuestaHelper::enviarRespuesta(400, $error); //Bad request del cliente

@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
         'titulo' => $body['titulo'],
         'idCategoria' => $body['idCategoria'],
         'categoria' => $body['categoria'],
+        'imgCategoria' => $body['imgCategoria'],
         'respuestas' => $respuestas,
 
     ]);
@@ -46,14 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $_GET['id'] && isset($body['modifica
     foreach ($body['respuestas'] as $respuesta) {
         array_push($respuestas, new RespuestaEdicion($respuesta));
     }
-    $pregunta = new PreguntaEdicion([
+    $bodyPregunta = [
         'id' => $body['id'],
         'titulo' => $body['titulo'],
         'idCategoria' => $body['idCategoria'],
         'nombreCategoria' => $body['nombreCategoria'],
         'esPublica' => $body['esPublica'],
         'respuestas' => $respuestas,
-    ]);
+    ];
+    if (isset($body['imgCategoria'])) {
+        $bodyPregunta['imgCategoria'] = $body['imgCategoria'];
+    }
+    $pregunta = new PreguntaEdicion($bodyPregunta);
     $controlador->modificar($_GET['id'], $pregunta);
 }
 
