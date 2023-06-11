@@ -8,7 +8,10 @@ use Models\Usuario\UsuarioInicio;
 use Models\Usuario\UsuarioRegistro;
 use Services\InicioService;
 
+// Obtener el cuerpo de la petición.
 $body = PeticionHelper::getBody();
+
+// Instanciar recursos necesarios.
 $controlador = new AuthController();
 new InicioService();
 
@@ -20,4 +23,5 @@ if (isset($body['nombre']) && isset($body['clave'])) {
     $controlador->iniciarSesion(new UsuarioInicio($body));
 }
 
+// Sino existen rutas, devolver 404 Not Found.
 RespuestaHelper::enviarRespuesta(404);

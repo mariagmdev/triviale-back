@@ -10,18 +10,27 @@ use Models\Respuesta\RespuestaCreacion;
 use Models\Respuesta\RespuestaEdicion;
 use Services\InicioService;
 
+// Obtener el cuerpo de la petición.
 $body = PeticionHelper::getBody();
+
+// Instanciar recursos necesarios.
 $controlador = new PreguntasController();
 new InicioService();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias'])) {
+    $controlador->obtenerXPreguntasAleatoriasPorCategorias($body['idCategorias']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idPregunta']) && isset($body['idRespuesta']) && isset($body['validar'])) {
     $controlador->validar($body['idPregunta'], $body['idRespuesta']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
+    // Crear objetos según el modelo de RespuestaCreacion y PreguntaCreacion para poder utilizarlos
+    // más facilmente en el controlador.
     $respuestas = [];
     foreach ($body['respuestas'] as $respuesta) {
-        array_push($respuestas, new RespuestaCreacion($respuesta));
+        $respuestas[count($respuestas)] = new RespuestaCreacion($respuesta);
     }
     $pregunta = new PreguntaCreacion([
         'titulo' => $body['titulo'],
@@ -29,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
         'categoria' => $body['categoria'],
         'imgCategoria' => $body['imgCategoria'],
         'respuestas' => $respuestas,
-
     ]);
     $controlador->crear($pregunta);
 }
@@ -43,9 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $_GET['id']) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $_GET['id'] && isset($body['modificar'])) {
+    // Crear objetos de los modelos a partir del cuerpo de la petición.
     $respuestas = [];
     foreach ($body['respuestas'] as $respuesta) {
-        array_push($respuestas, new RespuestaEdicion($respuesta));
+        $respuestas[count($respuestas)] = new RespuestaEdicion($respuesta);
     }
     $bodyPregunta = [
         'id' => $body['id'],
@@ -66,4 +75,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'PATCH' && isset($body['visibilidad'])) {
     $controlador->establecerVisibilidad($body['esPublica'], $body['id']);
 }
 
+// Sino existen rutas, devolver 404 Not Found.
 RespuestaHelper::enviarRespuesta(404);

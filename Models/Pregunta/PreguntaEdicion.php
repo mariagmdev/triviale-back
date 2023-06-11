@@ -2,6 +2,9 @@
 
 namespace Models\Pregunta;
 
+/**
+ * Modelo básico de Pregunta para la edición de esta.
+ */
 class PreguntaEdicion extends PreguntaGeneral
 {
     public array $respuestas;

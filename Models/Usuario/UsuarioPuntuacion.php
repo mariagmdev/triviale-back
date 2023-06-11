@@ -2,6 +2,9 @@
 
 namespace Models\Usuario;
 
+/**
+ * Modelo básico de la Puntuación de un Usuario.
+ */
 class UsuarioPuntuacion
 {
     public $nombre;

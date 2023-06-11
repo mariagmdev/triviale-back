@@ -2,6 +2,9 @@
 
 namespace Models\Pregunta;
 
+/**
+ * Modelo básico de Pregunta para la creación de esta.
+ */
 class PreguntaCreacion
 {
     public string $titulo;

@@ -6,23 +6,38 @@ use Helpers\RespuestaHelper;
 use Services\BaseDatosService;
 use Services\SesionService;
 
+/**
+ * Clase controladora que gestiona todo lo relacionado con la entidad de Puntuación.
+ */
 class PuntuacionesController
 {
-
+    /**
+     * Crear una nueva puntuación.
+     *
+     * @param array $preguntas preguntas a evaluar.
+     * @param integer $tiempo tiempo de la partida.
+     * @return void
+     */
     function crear(array $preguntas, int $tiempo): void
     {
         $sesion = new SesionService();
+        // Comprobamos que el usuario tiene la sesión abierta.
         if ($sesion->haySesion()) {
+            // Nos quedamos con los ids de las preguntas.
             $idPreguntas = [];
             foreach ($preguntas as $pregunta) {
-                array_push($idPreguntas, $pregunta->idPregunta);
+                $idPreguntas[count($idPreguntas)] = $pregunta->idPregunta;
             }
+
+            // Obtener la respuesta correcta para cada id de pregunta.
             $idPreguntasQuery = implode(',', $idPreguntas);
             $bd = new BaseDatosService();
             $query = "SELECT id, idPregunta FROM respuestas WHERE esCorrecta=1 AND idPregunta IN ($idPreguntasQuery)";
             $resultado = $bd->consultar($query);
             $puntos = 0;
 
+            // Comprobar la respuesta repondida es la correcta para cada pregunta
+            // si es correcta sumamos puntos.
             foreach ($preguntas as $pregunta) {
                 $respuestaCorrecta = null;
                 $i = 0;
@@ -36,6 +51,8 @@ class PuntuacionesController
                     $puntos += 10;
                 }
             }
+
+            // Insertamos la puntuación generada.
             $sentence = "INSERT into puntuaciones (idUsuario,puntos,tiempo) values({$sesion->getId()},$puntos, $tiempo)";
             $bd->ejecutar($sentence);
             RespuestaHelper::enviarRespuesta(200, $puntos);
@@ -44,6 +61,11 @@ class PuntuacionesController
         }
     }
 
+    /**
+     * Obtener ranking de las mejores 10 puntuaciones.
+     *
+     * @return void
+     */
     function obtenerRanking(): void
     {
         $bd = new BaseDatosService();
@@ -55,7 +77,7 @@ class PuntuacionesController
         $resultado = $bd->consultar($query);
         $usuarioPuntuaciones = [];
         foreach ($resultado as $usuarioPuntuacion) {
-            array_push($usuarioPuntuaciones, $usuarioPuntuacion);
+            $usuarioPuntuaciones[count($usuarioPuntuaciones)] = $usuarioPuntuacion;
         }
         RespuestaHelper::enviarRespuesta(200, $usuarioPuntuaciones);
     }

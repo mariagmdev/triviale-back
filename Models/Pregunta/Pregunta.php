@@ -2,6 +2,9 @@
 
 namespace Models\Pregunta;
 
+/**
+ * Modelo básico de Pregunta.
+ */
 class Pregunta
 {
     public int $id;

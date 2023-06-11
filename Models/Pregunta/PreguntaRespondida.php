@@ -2,6 +2,9 @@
 
 namespace Models\Pregunta;
 
+/**
+ * Modelo básico de Pregunta que contiene la respuesta respondida.
+ */
 class PreguntaRespondida
 {
     public int $idPregunta;

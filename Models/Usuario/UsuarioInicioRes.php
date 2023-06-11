@@ -2,6 +2,9 @@
 
 namespace Models\Usuario;
 
+/**
+ * Modelo básico de Usuario para la respuesta del inicio de sesión.
+ */
 class UsuarioInicioRes
 {
     public $id;

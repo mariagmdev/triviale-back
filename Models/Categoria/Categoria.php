@@ -2,6 +2,9 @@
 
 namespace Models\Categoria;
 
+/**
+ * Modelo básico de Categoría.
+ */
 class Categoria
 {
     public int $id;

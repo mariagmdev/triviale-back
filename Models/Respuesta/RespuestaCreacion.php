@@ -2,6 +2,9 @@
 
 namespace Models\Respuesta;
 
+/**
+ * Modelo básico de Respuesta para la creación de esta.
+ */
 class RespuestaCreacion
 {
     public bool $esCorrecta;

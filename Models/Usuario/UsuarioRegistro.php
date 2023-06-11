@@ -2,6 +2,9 @@
 
 namespace Models\Usuario;
 
+/**
+ * Modelo básico de Usuario para el registro.
+ */
 class UsuarioRegistro
 {
     public $nombre;
