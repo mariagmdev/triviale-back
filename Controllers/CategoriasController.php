@@ -32,7 +32,7 @@ class CategoriasController
         $sesion = new SesionService();
         if ($sesion->haySesion()) {
             $bd = new BaseDatosService();
-            $query = "SELECT COUNT(p.id) cantidadPreguntas, c.* FROM categorias c JOIN preguntas p ON p.idCategoria=c.id GROUP BY c.id;";
+            $query = "SELECT COUNT(p.id) cantidadPreguntas, c.* FROM categorias c JOIN preguntas p ON p.idCategoria=c.id WHERE p.esPublica=1 GROUP BY c.id";
             $resultado = $bd->consultar($query);
             $categorias = [];
             foreach ($resultado as $categoria) {
