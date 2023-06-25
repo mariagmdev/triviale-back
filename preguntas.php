@@ -32,13 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
     foreach ($body['respuestas'] as $respuesta) {
         $respuestas[count($respuestas)] = new RespuestaCreacion($respuesta);
     }
-    $pregunta = new PreguntaCreacion([
+    $bodyPregunta = [
         'titulo' => $body['titulo'],
         'idCategoria' => $body['idCategoria'],
         'categoria' => $body['categoria'],
-        'imgCategoria' => $body['imgCategoria'],
         'respuestas' => $respuestas,
-    ]);
+    ];
+
+    if (isset($body['imgCategoria'])) {
+        $bodyPregunta[count($bodyPregunta)] = ['imgCategoria' => $body['imgCategoria']];
+    }
+    $pregunta = new PreguntaCreacion($bodyPregunta);
     $controlador->crear($pregunta);
 }
 
@@ -60,12 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $_GET['id'] && isset($body['modifica
         'id' => $body['id'],
         'titulo' => $body['titulo'],
         'idCategoria' => $body['idCategoria'],
-        'nombreCategoria' => $body['nombreCategoria'],
         'esPublica' => $body['esPublica'],
         'respuestas' => $respuestas,
     ];
     if (isset($body['imgCategoria'])) {
         $bodyPregunta['imgCategoria'] = $body['imgCategoria'];
+    }
+    if (isset($body['nombreCategoria'])) {
+        $bodyPregunta['nombreCategoria'] = $body['nombreCategoria'];
     }
     $pregunta = new PreguntaEdicion($bodyPregunta);
     $controlador->modificar($_GET['id'], $pregunta);

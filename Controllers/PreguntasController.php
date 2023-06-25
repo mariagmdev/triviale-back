@@ -122,7 +122,7 @@ class PreguntasController
             }
 
             // Insertamos la nueva pregunta.
-            $sentenciaPregunta = "INSERT into preguntas (titulo, idCategoria) VALUES ('$pregunta->titulo',$pregunta->idCategoria)";
+            $sentenciaPregunta = "INSERT into preguntas (titulo, idCategoria) VALUES ('" . addslashes($pregunta->titulo) . "',$pregunta->idCategoria)";
             $bd->ejecutar($sentenciaPregunta);
 
             // Obtenemos el id de la pregunta insertada.
@@ -132,7 +132,7 @@ class PreguntasController
             $sentenciaRespuestas = "INSERT into respuestas (titulo, idPregunta, esCorrecta) VALUES ";
             $valoresRespuesta = [];
             foreach ($pregunta->respuestas as $respuesta) {
-                $valoresRespuesta[count($valoresRespuesta)] = "('$respuesta->titulo', $idPregunta," . ((int) $respuesta->esCorrecta) . ")";
+                $valoresRespuesta[count($valoresRespuesta)] = "('" . addslashes($respuesta->titulo) . "', $idPregunta," . ((int) $respuesta->esCorrecta) . ")";
             }
             $sentenciaRespuestas .= implode(",", $valoresRespuesta);
             $bd->ejecutar($sentenciaRespuestas);

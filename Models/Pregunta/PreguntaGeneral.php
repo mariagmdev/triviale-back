@@ -18,7 +18,9 @@ class PreguntaGeneral
         $this->id = (int)$pregunta['id'];
         $this->titulo = $pregunta['titulo'];
         $this->esPublica = (bool) $pregunta['esPublica'];
-        $this->nombreCategoria = $pregunta['nombreCategoria'];
+        if (isset($pregunta['nombreCategoria'])) {
+            $this->nombreCategoria = $pregunta['nombreCategoria'];
+        }
         $this->idCategoria = (int)$pregunta['idCategoria'];
     }
 }

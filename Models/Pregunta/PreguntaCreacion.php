@@ -18,7 +18,9 @@ class PreguntaCreacion
         $this->titulo = $pregunta['titulo'];
         $this->categoria = $pregunta['categoria'];
         $this->idCategoria = (int)$pregunta['idCategoria'];
-        $this->imgCategoria = $pregunta['imgCategoria'];
+        if (isset($pregunta['imgCategoria'])) {
+            $this->imgCategoria = $pregunta['imgCategoria'];
+        }
         $this->respuestas = $pregunta['respuestas'];
     }
 }
