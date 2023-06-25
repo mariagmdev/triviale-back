@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['crear'])) {
     ];
 
     if (isset($body['imgCategoria'])) {
-        $bodyPregunta[count($bodyPregunta)] = ['imgCategoria' => $body['imgCategoria']];
+        $bodyPregunta['imgCategoria'] = $body['imgCategoria'];
     }
     $pregunta = new PreguntaCreacion($bodyPregunta);
     $controlador->crear($pregunta);

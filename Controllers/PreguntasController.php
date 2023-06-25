@@ -113,8 +113,13 @@ class PreguntasController
 
             // Insertamos una categoría nueva si se ha utilizado una nueva categoría.
             if ($pregunta->idCategoria === 0) {
-                $imgCategoria = isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL";
-                $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->categoria', $imgCategoria)";
+                $columnasAInsertar = ['nombre'];
+                $valoresAInsertar = ["'$pregunta->categoria'"];
+                if (isset($pregunta->imgCategoria)) {
+                    $columnasAInsertar[count($columnasAInsertar)] = 'img';
+                    $valoresAInsertar[count($valoresAInsertar)] = "'$pregunta->imgCategoria'";
+                }
+                $sentenciaCategoria = "INSERT into categorias (" . implode(',', $columnasAInsertar) . ") VALUES (" . implode(',', $valoresAInsertar) . ")";
                 $bd->ejecutar($sentenciaCategoria);
 
                 // Guardamos en el mismo objeto el id de la categoría insertada.
@@ -220,7 +225,13 @@ class PreguntasController
 
                 // Insertamos una categoría nueva si se ha utilizado una nueva categoría.
                 if ($pregunta->idCategoria === 0) {
-                    $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->nombreCategoria'," . (isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL") . ")";
+                    $columnasAInsertar = ['nombre'];
+                    $valoresAInsertar = ["'$pregunta->nombreCategoria'"];
+                    if (isset($pregunta->imgCategoria)) {
+                        $columnasAInsertar[count($columnasAInsertar)] = 'img';
+                        $valoresAInsertar[count($valoresAInsertar)] = "'$pregunta->imgCategoria'";
+                    }
+                    $sentenciaCategoria = "INSERT into categorias (" . implode(',', $columnasAInsertar) . ") VALUES (" . implode(',', $valoresAInsertar) . ")";
                     $bd->ejecutar($sentenciaCategoria);
 
                     // Guardamos en el mismo objeto el id de la categoría insertada.
