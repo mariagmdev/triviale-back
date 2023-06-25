@@ -13,6 +13,7 @@ use Models\Respuesta\Respuesta;
 use Models\Respuesta\RespuestaEdicion;
 use Services\BaseDatosService;
 use Services\SesionService;
+use SimpleXMLElement;
 
 /**
  * Clase controladora que gestiona todo lo relacionado con la entidad de Preguntas.
@@ -33,7 +34,7 @@ class PreguntasController
         if ($sesion->haySesion()) {
             $bd = new BaseDatosService();
             // Obtenemos todas las preguntas de las categorías dadas.
-            $consultaPreguntas = "SELECT p.id, p.titulo, c.nombre nombreCategoria, c.img imgCategoria FROM preguntas p LEFT JOIN categorias c ON c.id=p.idCategoria WHERE c.id in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
+            $consultaPreguntas = "SELECT p.id, p.titulo, c.nombre nombreCategoria, c.img imgCategoria, c.id idCategoria FROM preguntas p LEFT JOIN categorias c ON c.id=p.idCategoria WHERE c.id in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
             $resultadoPreguntas = $bd->consultar($consultaPreguntas);
 
             // Obtenemos las respuestas de las preguntas de las categorías dadas.
@@ -266,6 +267,70 @@ class PreguntasController
             $bd->ejecutar($sentencia);
 
             RespuestaHelper::enviarRespuesta(204);
+        } else {
+            RespuestaHelper::enviarRespuesta(401);
+        }
+    }
+
+    function exportar(array $idCategorias, string $tipo): void
+    {
+        $sesion = new SesionService();
+        if ($sesion->haySesion()) {
+            $bd = new BaseDatosService();
+            // Obtenemos todas las preguntas de las categorías dadas.
+            $consultaPreguntas = "SELECT p.id, p.titulo, c.nombre nombreCategoria, c.id idCategoria FROM preguntas p LEFT JOIN categorias c ON c.id=p.idCategoria WHERE c.id in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
+            $resultadoPreguntas = $bd->consultar($consultaPreguntas);
+
+            // Obtenemos las respuestas de las preguntas de las categorías dadas.
+            $consultaRespuestas = "SELECT r.id, r.titulo, r.idPregunta, r.esCorrecta FROM respuestas r JOIN preguntas p ON p.id=r.idPregunta WHERE p.idCategoria in (" . implode(',', $idCategorias) . ") AND p.esPublica=1";
+            $resultadoRespuestas = $bd->consultar($consultaRespuestas);
+
+            // Creamos objetos en base a los modelos a partir de los datos obtenidos.
+            $preguntas = [];
+            foreach ($resultadoPreguntas as $pregunta) {
+                // Buscamos y adjuntamos las respuestas de cada pregunta.
+                $respuestas = [];
+                foreach ($resultadoRespuestas as $respuesta) {
+                    if ($respuesta['idPregunta'] === $pregunta['id']) {
+                        $respuestas[count($respuestas)] = new RespuestaEdicion($respuesta);
+                    }
+                };
+                // Añadirmos la pregunta completa al listado de preguntas a devolver.
+                $preguntas[count($preguntas)] = new Pregunta(array_merge($pregunta, ['respuestas' => $respuestas]));
+            }
+            switch ($tipo) {
+                case 'xml':
+                    $preguntasXml = new SimpleXMLElement('<preguntas></preguntas>');
+                    foreach ($preguntas as $pregunta) {
+                        $preguntaXml = $preguntasXml->addChild('pregunta');
+                        $preguntaXml->addAttribute('id', $pregunta->id);
+                        $preguntaXml->addAttribute('idCategoria', $pregunta->idCategoria);
+                        $preguntaXml->addAttribute('nombreCategoria', $pregunta->nombreCategoria);
+                        $preguntaXml->addChild('titulo', htmlspecialchars($pregunta->titulo));
+                        $respuestasXml = $preguntaXml->addChild('respuestas');
+                        foreach ($pregunta->respuestas as $respuesta) {
+                            $respuestaXml = $respuestasXml->addChild('respuesta');
+                            $respuestaXml->addAttribute('id', $respuesta->id);
+                            $respuestaXml->addAttribute('esCorrecta', $respuesta->esCorrecta ? 1 : 0);
+                            $respuestaXml->addChild('titulo', htmlspecialchars($respuesta->titulo));
+                        }
+                    }
+                    $ruta = tempnam(sys_get_temp_dir(), 'preguntas.xml');
+                    $archivo = fopen($ruta, 'w+');
+                    fwrite($archivo, $preguntasXml->asXML());
+                    fclose($archivo);
+                    RespuestaHelper::enviarArchivo($ruta, 'preguntas.xml');
+                    break;
+                case 'json':
+                    $ruta = tempnam(sys_get_temp_dir(), 'preguntas.json');
+                    $archivo = fopen($ruta, 'w+');
+                    fwrite($archivo, json_encode($preguntas));
+                    fclose($archivo);
+                    RespuestaHelper::enviarArchivo($ruta, 'preguntas.json');
+                    break;
+                default:
+                    RespuestaHelper::enviarRespuesta(400, new Error('Tipo no soportado, solo soporta XML o JSON'));
+            }
         } else {
             RespuestaHelper::enviarRespuesta(401);
         }

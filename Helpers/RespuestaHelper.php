@@ -23,4 +23,17 @@ abstract class RespuestaHelper
         }
         exit();
     }
+
+    static function enviarArchivo(string $ruta, string $nombre): void
+    {
+        http_response_code(200);
+        // header($_SERVER["SERVER_PROTOCOL"] . " 200 OK");
+        header("Cache-Control: public");
+        header("Content-Type: application/octet-stream");
+        header("Content-Transfer-Encoding: Binary");
+        header("Content-Length:" . filesize($ruta));
+        header("Content-Disposition: attachment; filename=$nombre");
+        readfile($ruta);
+        exit();
+    }
 }

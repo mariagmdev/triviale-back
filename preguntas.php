@@ -17,7 +17,7 @@ $body = PeticionHelper::getBody();
 $controlador = new PreguntasController();
 new InicioService();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias']) && isset($body['preguntasPartida'])) {
     $controlador->obtenerXPreguntasAleatoriasPorCategorias($body['idCategorias']);
 }
 
@@ -73,6 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $_GET['id'] && isset($body['modifica
 
 if ($_SERVER['REQUEST_METHOD'] === 'PATCH' && isset($body['visibilidad'])) {
     $controlador->establecerVisibilidad($body['esPublica'], $body['id']);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($body['idCategorias']) && isset($body['exportar'])) {
+    $controlador->exportar($body['idCategorias'], $body['tipo']);
 }
 
 // Sino existen rutas, devolver 404 Not Found.
