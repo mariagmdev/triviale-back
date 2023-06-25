@@ -113,7 +113,8 @@ class PreguntasController
 
             // Insertamos una categoría nueva si se ha utilizado una nueva categoría.
             if ($pregunta->idCategoria === 0) {
-                $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->categoria'," . (isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL") . ")";
+                $imgCategoria = isset($pregunta->imgCategoria) ? "'$pregunta->imgCategoria'" : "NULL";
+                $sentenciaCategoria = "INSERT into categorias (nombre, img) VALUES ('$pregunta->categoria', $imgCategoria)";
                 $bd->ejecutar($sentenciaCategoria);
 
                 // Guardamos en el mismo objeto el id de la categoría insertada.
